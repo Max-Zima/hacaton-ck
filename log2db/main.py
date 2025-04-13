@@ -57,5 +57,3 @@ async def main():
 if __name__ == "__main__":
     import uvicorn, sys
     asyncio.run(main())
-    # Если хотите запустить API-сервер, закомментируйте строку выше и раскомментируйте:
-    # uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
