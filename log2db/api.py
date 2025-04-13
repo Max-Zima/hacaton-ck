@@ -4,7 +4,7 @@ import os
 import logging
 import psycopg2
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from werkzeug.utils import secure_filename
 from config import UPLOAD_LOG_DIRECTORY, ALLOWED_EXTENSIONS, DATABASE_CONFIG
 from processor import process_file_async
@@ -16,6 +16,20 @@ app = FastAPI()
 def allowed_file(filename):
     """Проверяет, разрешено ли расширение файла."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    """
+    Возвращает HTML-страницу с формой загрузки лог-файла
+    """
+    try:
+        with open("html_page/index.html", "r", encoding="utf-8") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        logging.error(f"Ошибка чтения index.html: {e}")
+        return HTMLResponse(content="<h1>Ошибка загрузки страницы</h1>", status_code=500)
 
 
 @app.post("/upload/")
