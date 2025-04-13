@@ -1,0 +1,17 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# --- Конфигурация ---
+DATABASE_CONFIG = {
+    'host': os.environ.get('DB_HOST', 'localhost'),
+    'port': int(os.environ.get('DB_PORT', 5433)),
+    'database': os.environ.get('DB_NAME', 'hakaton'),
+    'user': os.environ.get('DB_USER', 'postgres'),
+    'password': os.environ.get('DB_PASS', '347620')
+}
+print(DATABASE_CONFIG)
+
+UPLOAD_LOG_DIRECTORY = './uploaded_logs'
+LOCAL_LOG_DIRECTORY = 'log2db/local_logs'
