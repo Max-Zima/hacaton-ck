@@ -12,9 +12,11 @@ import psycopg2
 from log2db.config import DATABASE_CONFIG
 from log_export.export import export_to_dataframe
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__,
+                requests_pathname_prefix='/dashboard/')
 
-def fetch_logs_data(conn, start_date=None, end_date=None, status_code=None, request_type=None):
+
+def fetch_logs_data(start_date=None, end_date=None, status_code=None, request_type=None):
     '''
     Экспортирует данные из БД.
     Применяет фильтрацию.
@@ -30,28 +32,49 @@ def fetch_logs_data(conn, start_date=None, end_date=None, status_code=None, requ
         raise
 
     try:
-        df['timestamp_utc'] = pd.to_datetime(df['timestamp_utc'])
-        logging.debug("Поле timestamp_utc преобразовано в datetime")
+        df['timestamp_utc'] = pd.to_datetime(df['timestamp_utc'], utc=True)
+        logging.debug("Поле timestamp_utc преобразовано в datetime с таймзоной UTC")
     except Exception as e:
         logging.error(f"Ошибка при преобразовании timestamp_utc в datetime: {e}")
         raise
 
-    # Применяем фильтры
     filtered_rows_before = len(df)
+
+    if isinstance(end_date, str) and end_date.lower() == "all":
+        end_date = None
+    elif isinstance(end_date, str):
+        end_date = pd.to_datetime(end_date)
+        if end_date.tzinfo is None:
+            end_date = end_date.tz_localize("UTC")
+
     try:
+        if isinstance(start_date, str) and start_date.lower() != "all":
+            start_date = pd.to_datetime(start_date).tz_localize("UTC")
+        elif isinstance(start_date, pd.Timestamp) and start_date.tzinfo is None:
+            start_date = start_date.tz_localize("UTC")
+
+        if isinstance(end_date, str) and end_date.lower() != "all":
+            end_date = pd.to_datetime(end_date)
+            if end_date.tzinfo is None:
+                end_date = end_date.tz_localize("UTC")
+        elif isinstance(end_date, pd.Timestamp) and end_date.tzinfo is None:
+            end_date = end_date.tz_localize("UTC")
+
         if start_date:
             df = df[df['timestamp_utc'] >= start_date]
             logging.debug(f"Фильтр по start_date применён: {start_date}")
         if end_date:
             df = df[df['timestamp_utc'] <= end_date]
             logging.debug(f"Фильтр по end_date применён: {end_date}")
+
         if status_code and status_code != 'all':
             df = df[df['status_code'] == int(status_code)]
             logging.debug(f"Фильтр по status_code применён: {status_code}")
+
         if request_type and request_type != 'all':
             df = df[df['request_type'] == request_type]
             logging.debug(f"Фильтр по request_type применён: {request_type}")
-        
+
         filtered_rows_after = len(df)
         logging.info(f"Фильтрация завершена. Строк до фильтрации: {filtered_rows_before}, после: {filtered_rows_after}")
     except Exception as e:
@@ -59,6 +82,7 @@ def fetch_logs_data(conn, start_date=None, end_date=None, status_code=None, requ
         raise
 
     return df
+
 
 def fetch_request_types(df):
     try:
