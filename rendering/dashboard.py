@@ -198,5 +198,5 @@ def update_graphs(start_date, end_date, status_code, request_type):
 
 if __name__ == '__main__':
     logging.info("Запуск приложения Dash...")
-    app.run_server(debug=True)
+    app.run(debug=True)
     logging.info("Приложение Dash запущено")
