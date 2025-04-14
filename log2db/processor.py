@@ -3,11 +3,11 @@
 import os
 import asyncio
 import logging
-from parser import parse_log_line
-from db import get_or_insert_dimension, insert_batch, run_db_operation
+from log2db.parser import parse_log_line
+from log2db.db import get_or_insert_dimension, insert_batch, run_db_operation
 from user_agents import parse as ua_parse
-from config import BATCH_SIZE
-from cache import ip_cache, ua_cache, time_cache, req_type_cache, api_cache, protocol_cache, referrer_cache
+from log2db.config import BATCH_SIZE
+from log2db.cache import ip_cache, ua_cache, time_cache, req_type_cache, api_cache, protocol_cache, referrer_cache
 
 
 def process_log_lines(conn, lines, batch_buffer):

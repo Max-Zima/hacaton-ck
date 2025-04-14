@@ -19,6 +19,10 @@ print(DATABASE_CONFIG)
 UPLOAD_LOG_DIRECTORY = './uploaded_logs'
 LOCAL_LOG_DIRECTORY = 'log2db/local_logs'
 
+EXPORT_DIR = "exported_data"
+
+os.makedirs(EXPORT_DIR, exist_ok=True)
+
 ALLOWED_EXTENSIONS = {'log'}
 BATCH_SIZE = 1000
 DEBUG_MODE = os.environ.get('DEBUG', 'False').lower() == 'true'

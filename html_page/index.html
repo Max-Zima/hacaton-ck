@@ -2,13 +2,21 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Загрузка логов</title>
+    <title>Логи: Загрузка и Экспорт</title>
 </head>
 <body>
     <h1>Загрузка лог-файла</h1>
     <form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".log" required>
         <button type="submit">Загрузить и обработать</button>
+    </form>
+    
+    <h2>Экспорт данных</h2>
+    <form action="/export/csv" method="get">
+        <button type="submit">Экспорт в CSV</button>
+    </form>
+    <form action="/export/parquet" method="get">
+        <button type="submit">Экспорт в Parquet</button>
     </form>
 </body>
 </html>
