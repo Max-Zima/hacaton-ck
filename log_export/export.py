@@ -2,10 +2,7 @@ import os
 import logging
 import psycopg2
 import pandas as pd
-from config import DATABASE_CONFIG
-
-EXPORT_DIR = "exported_data"
-os.makedirs(EXPORT_DIR, exist_ok=True)
+from log2db.config import DATABASE_CONFIG, EXPORT_DIR
 
 
 def export_to_dataframe(conn):
@@ -36,7 +33,6 @@ def export_to_dataframe(conn):
     JOIN dim_protocol proto ON l.protocol_id = proto.protocol_id
     LEFT JOIN dim_referrer ref ON l.referrer_id = ref.referrer_id
     """
-
     df = pd.read_sql_query(query, conn)
     return df
 
@@ -57,19 +53,35 @@ def export_to_parquet(df, filename="exported_logs.parquet"):
     return parquet_path
 
 
-def export_all():
-    """Основная функция экспорта"""
+def export_all_csv():
+    """Подключается к БД, экспортирует данные в CSV и возвращает путь к файлу"""
     try:
-        logging.info("Подключение к базе данных для экспорта...")
+        logging.info("Подключение к базе данных для экспорта в CSV...")
         with psycopg2.connect(**DATABASE_CONFIG) as conn:
             df = export_to_dataframe(conn)
-            export_to_csv(df)
-            export_to_parquet(df)
-            logging.info("Экспорт завершен.")
+            csv_path = export_to_csv(df)
+            logging.info("Экспорт в CSV завершен.")
+            return csv_path
     except Exception as e:
-        logging.error(f"Ошибка при экспорте данных: {e}")
+        logging.error(f"Ошибка при экспорте в CSV: {e}")
+        raise
+
+
+def export_all_parquet():
+    """Подключается к БД, экспортирует данные в Parquet и возвращает путь к файлу"""
+    try:
+        logging.info("Подключение к базе данных для экспорта в Parquet...")
+        with psycopg2.connect(**DATABASE_CONFIG) as conn:
+            df = export_to_dataframe(conn)
+            parquet_path = export_to_parquet(df)
+            logging.info("Экспорт в Parquet завершен.")
+            return parquet_path
+    except Exception as e:
+        logging.error(f"Ошибка при экспорте в Parquet: {e}")
+        raise
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    export_all()
+    export_all_csv()
+    export_all_parquet()
