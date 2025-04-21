@@ -5,6 +5,7 @@ import logging
 import psycopg2
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from werkzeug.utils import secure_filename
 from log2db.config import UPLOAD_LOG_DIRECTORY, ALLOWED_EXTENSIONS, DATABASE_CONFIG
 from log2db.processor import process_file_async
@@ -12,6 +13,12 @@ import log_export.export as export
 
 
 app = FastAPI()
+
+app.mount(
+    "/html_page",
+    StaticFiles(directory="html_page"),
+    name="html_page"
+)
 
 def allowed_file(filename):
     """Проверяет, соответствует ли расширение имени файла разрешенному."""

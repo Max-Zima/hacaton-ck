@@ -1,25 +1,47 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Логи: Загрузка и Экспорт</title>
+    <link rel="stylesheet" href="/html_page/style.css">
 </head>
 <body>
-    <h1>Загрузка лог-файла</h1>
-    <form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".log" required>
-        <button type="submit">Загрузить и обработать</button>
-    </form>
-    
-    <h2>Экспорт данных</h2>
-    <form action="/export/csv" method="get">
-        <button type="submit">Экспорт в CSV</button>
-    </form>
-    <form action="/export/parquet" method="get">
-        <button type="submit">Экспорт в Parquet</button>
-    </form>
-    <h2>Дашборд</h2>
-    <button onclick="window.open('/dashboard', '_blank')">Открыть дашборд</button>
-
+    <div class="container">
+        <header>
+            <h1>Логи: Загрузка и Экспорт</h1>
+        </header>
+        <main>
+            <section class="card">
+                <h2>Загрузка лог‑файла</h2>
+                <form id="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" accept=".log" required>
+                    <button type="submit" class="btn">Загрузить и обработать</button>
+                </form>
+            </section>
+            <section class="card">
+                <h2>Экспорт данных</h2>
+                <div class="btn-group">
+                    <form action="/export/csv" method="get">
+                        <button type="submit" class="btn">Экспорт в CSV</button>
+                    </form>
+                    <form action="/export/parquet" method="get">
+                        <button type="submit" class="btn">Экспорт в Parquet</button>
+                    </form>
+                </div>
+            </section>
+            <section class="card">
+                <h2>Дашборд</h2>
+                <button class="btn" id="open-dashboard">Открыть дашборд</button>
+            </section>
+        </main>
+        <footer>
+            ЦК МФТИ, 2025
+        </footer>
+    </div>
+    <!-- <script src="script.js"></script> -->
+    <script src="/html_page/script.js"></script>
 </body>
 </html>

@@ -1,0 +1,94 @@
+/* style.css */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    color: #2f3640;
+    line-height: 1.6;
+}
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+header, footer {
+    text-align: center;
+    margin-bottom: 20px;
+}
+h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+.card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+h2 {
+    font-size: 1.25rem;
+    margin-bottom: 15px;
+}
+input[type="file"] {
+    display: block;
+    margin-bottom: 15px;
+}
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: #0984e3;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.btn:hover,
+.btn:focus {
+    background: #74b9ff;
+    box-shadow: 0 4px 12px rgba(9,132,227,0.4);
+    outline: none;
+}
+.btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+    .btn-group {
+        flex-direction: column;
+    }
+}
+footer {
+    font-size: 0.9rem;
+    color: #636e72;
+}
+/* Внизу style.css */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 18px;
+    border-radius: 4px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+.toast--visible {
+    opacity: 1;
+}
+.toast--success {
+    background: #27ae60;
+}
+.toast--error {
+    background: #c0392b;
+}
