@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Droid+Sans:wght@400;700&display=swap');
+
+body {
+    margin: 0;
+    background-color: #1e1e2f;
+    font-family: 'Droid Sans', sans-serif;
+    font-weight: bold !important;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 25px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.tab--selected {
+    background-color: #2b2b3c !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+.dash-graph {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+
+.main-content {
+    margin-left: 280px;
+    background-color: #f4f4f4;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar {
+    background-color: #1e1e2f;
+    padding: 20px;
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    overflow-y: auto;
+    border-right: 2px solid #2b2b3c;
+}
+
+.sidebar h2 {
+    color: white;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.sidebar label {
+    color: white;
+    font-weight: bold;
+}
+
+.dcc-select-container {
+    margin-bottom: 20px;
+}
+
+.dcc-select {
+    background-color: #2b2b3c;
+    color: rgb(0, 0, 0);  /* Белый цвет текста для контраста */
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif; /* Устанавливаем шрифт для селекторов */
+}
+
+.dcc-select:hover {
+    background-color: #3a3a4b;
+}
+
+.dcc-select:focus {
+    outline: none;
+    background-color: #4a4a5d;
+}
+
+.dcc-date-picker-range {
+    background-color: #2b2b3c;
+    color: white;  /* Белый цвет текста для контраста */
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif; /* Устанавливаем шрифт для DatePicker */
+}
+
+.dcc-date-picker-range:hover {
+    background-color: #3a3a4b;
+}
