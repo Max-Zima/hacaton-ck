@@ -1,6 +1,6 @@
 # Хакатон ЦК
 
-👇👇👇
+📹👉
 [Видео-демонстрация работы сервиса](https://disk.yandex.ru/i/DP44nTcDqhRMsg)
 
 ## `log2db`
