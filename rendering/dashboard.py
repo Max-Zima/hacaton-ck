@@ -11,10 +11,14 @@ from datetime import datetime
 import psycopg2
 from log2db.config import DATABASE_CONFIG
 from log_export.export import export_to_dataframe
+from rendering.layout import dash_layout
 
-app = dash.Dash(__name__,
-                requests_pathname_prefix='/dashboard/')
+app = dash.Dash(
+    __name__, 
+    requests_pathname_prefix='/dashboard/'
+    )
 
+app.layout = dash_layout
 
 def fetch_logs_data(start_date=None, end_date=None, status_code=None, request_type=None):
     '''
@@ -83,85 +87,31 @@ def fetch_logs_data(start_date=None, end_date=None, status_code=None, request_ty
 
     return df
 
-
-def fetch_request_types(df):
-    try:
-        request_types = [{'label': 'Все', 'value': 'all'}] + [
-            {'label': rt, 'value': rt} for rt in df['request_type'].unique()
-        ]
-        logging.debug("Список типов запросов успешно сформирован")
-        return request_types
-    except Exception as e:
-        logging.error(f"Ошибка при формировании списка типов запросов: {e}")
-        raise
-
-logging.info("Инициализация: извлечение данных для формирования списка типов запросов...")
-try:
-    with psycopg2.connect(**DATABASE_CONFIG) as conn:
-        df_initial = export_to_dataframe(conn)
-    request_types = fetch_request_types(df_initial)
-    logging.info("Инициализация списка типов запросов завершена")
-except Exception as e:
-    logging.error(f"Ошибка при инициализации списка типов запросов: {e}")
-    raise
-
-
-# Макет дашборда
-app.layout = html.Div([
-    html.H1("Визуализация логов", style={'textAlign': 'center', 'fontSize': '24px', 'marginBottom': '10px'}),
-
-    # Фильтры
-    html.Div([
-        html.Label("Даты:", style={'marginRight': '5px'}),
-        dcc.DatePickerRange(
-            id='date-picker-range',
-            start_date=datetime(2023, 1, 1),
-            end_date=datetime(2023, 12, 31),
-            display_format='YYYY-MM-DD',
-            style={'display': 'inline-block', 'marginRight': '10px'}
-        ),
-        html.Label("Статус-код:", style={'marginRight': '5px'}),
-        dcc.Dropdown(
-            id='status-code-dropdown',
-            options=[
-                {'label': 'Все', 'value': 'all'},
-                {'label': '200', 'value': 200},
-                {'label': '404', 'value': 404},
-                {'label': '500', 'value': 500}
-            ],
-            value='all',
-            style={'width': '100px', 'display': 'inline-block', 'verticalAlign': 'middle', 'marginRight': '10px'}
-        ),
-        html.Label("Тип запроса:", style={'marginRight': '5px'}),
-        dcc.Dropdown(
-            id='request-type-dropdown',
-            options=request_types,
-            value='all',
-            style={'width': '100px', 'display': 'inline-block', 'verticalAlign': 'middle'}
-        ),
-    ], style={'textAlign': 'center', 'marginBottom': '10px'}),
-
-    # Графики (сетка 2x2)
-    html.Div([
-        # Первая строка: два графика
-        html.Div([
-            dcc.Graph(id='requests-over-time', style={'width': '50%', 'display': 'inline-block'}),
-            dcc.Graph(id='status-code-distribution', style={'width': '50%', 'display': 'inline-block'}),
-        ], style={'display': 'flex'}),
-        # Вторая строка: два графика
-        html.Div([
-            dcc.Graph(id='top-api-paths', style={'width': '50%', 'display': 'inline-block'}),
-            dcc.Graph(id='avg-response-time', style={'width': '50%', 'display': 'inline-block'}),
-        ], style={'display': 'flex'}),
-    ])
-])
-
 @app.callback(
     [
+        # Для вкладки "Общее"
         Output('requests-over-time', 'figure'),
         Output('status-code-distribution', 'figure'),
         Output('top-api-paths', 'figure'),
-        Output('avg-response-time', 'figure')
+        Output('avg-response-time', 'figure'),
+        Output('status-code-by-request-type', 'figure'),
+        
+        # Для вкладки "Активность"
+        Output('requests-over-time-activity', 'figure'),
+        Output('top-api-paths-activity', 'figure'),
+        
+        # Для вкладки "Ответы"
+        Output('status-code-distribution-responses', 'figure'),
+        Output('status-code-by-request-type-responses', 'figure'),
+        
+        # Для вкладки "API"
+        Output('top-api-paths-activity-2', 'figure'),
+        Output('avg-response-time-2', 'figure'),
+
+
+        # Для вкладки "Производительность"
+        Output('avg-response-time-performance', 'figure'),
+        Output('requests-over-time-performance', 'figure')
     ],
     [
         Input('date-picker-range', 'start_date'),
@@ -173,54 +123,127 @@ app.layout = html.Div([
 
 def update_graphs(start_date, end_date, status_code, request_type):
     logging.info("Обновление графиков дашборда...")
-    
+
     try:
         df = fetch_logs_data(start_date, end_date, status_code, request_type)
     except Exception as e:
         logging.error(f"Ошибка при загрузке данных для графиков: {e}")
         raise
 
-    # График 1
+    # График 1: Запросы по времени (по часам суток)
     try:
-        df_time = df.groupby(df['timestamp_utc'].dt.floor('H')).size().reset_index(name='count')
-        fig1 = px.line(df_time, x='timestamp_utc', y='count', title='Запросы по времени')
-        logging.debug("График 'Запросы по времени' успешно построен")
+        df['timestamp_utc'] = pd.to_datetime(df['timestamp_utc'], utc=True)
+        df['timestamp_local'] = df['timestamp_utc'].dt.tz_convert('Europe/Amsterdam')
+        df['hour'] = df['timestamp_local'].dt.hour
+        hourly_counts = df.groupby('hour').size().reset_index(name='count')
+        
+        fig1 = px.bar(hourly_counts, x='hour', y='count',
+                      title='Количество запросов по часам суток (CET)',
+                      labels={'hour': 'Час суток (CET)', 'count': 'Количество запросов'},
+                      category_orders={'hour': list(range(24))})
+        fig1.update_xaxes(type='category')
     except Exception as e:
-        logging.error(f"Ошибка при построении графика 'Запросы по времени': {e}")
+        logging.error(f"Ошибка при построении графика 'Количество запросов по часам суток': {e}")
         raise
 
-    # График 2
+    # График 2: Распределение статус-кодов
     try:
-        fig2 = px.histogram(df, x='status_code', title='Распределение статус-кодов', nbins=20)
-        logging.debug("График 'Распределение статус-кодов' успешно построен")
+        status_counts = df['status_code'].value_counts().reset_index()
+        status_counts.columns = ['status_code', 'count']
+        status_counts = status_counts.sort_values(by='count', ascending=False)
+        status_counts['status_code_str'] = status_counts['status_code'].astype(str)
+
+        fig2 = px.bar(status_counts, x='status_code_str', y='count', color='status_code_str',
+                      title='Распределение статус-кодов',
+                      labels={'status_code_str': 'Статус-код', 'count': 'Количество'},
+                      color_discrete_sequence=px.colors.sequential.Plasma,
+                      category_orders={'status_code_str': status_counts['status_code_str'].tolist()})
+        fig2.update_layout(showlegend=True)
+        fig2.update_xaxes(type='category')
     except Exception as e:
         logging.error(f"Ошибка при построении графика 'Распределение статус-кодов': {e}")
         raise
 
-    # График 3
+    # График 3: Топ-10 API-путей
     try:
         top_api = df['api_path'].value_counts().head(10).reset_index()
         top_api.columns = ['api_path', 'count']
-        fig3 = px.bar(top_api, x='count', y='api_path', orientation='h', title='Топ-10 API-путей')
-        logging.debug("График 'Топ-10 API-путей' успешно построен")
+        fig3 = px.bar(top_api, x='count', y='api_path', orientation='h', 
+                      title='Топ-10 API-путей', color='api_path',
+                      labels={'count': 'Количество', 'api_path' : 'АПИ пути'},
+                      color_discrete_sequence=px.colors.sequential.Viridis)
     except Exception as e:
         logging.error(f"Ошибка при построении графика 'Топ-10 API-путей': {e}")
         raise
 
-    # График 4
+    # График 4: Среднее время ответа
     try:
         avg_response = df.groupby('api_path')['response_time'].mean().reset_index().sort_values(by='response_time', ascending=False).head(10)
-        fig4 = px.bar(avg_response, x='response_time', y='api_path', orientation='h', title='Среднее время ответа по API-путям (Топ-10)')
-        logging.debug("График 'Среднее время ответа по API-путям' успешно построен")
+        fig4 = px.bar(avg_response, x='response_time', y='api_path', orientation='h', 
+                      title='Среднее время ответа по API-путям (Топ-10)', color='api_path',
+                      labels={'response_time' : 'Время ответа', 'api_path' : 'АПИ путь'},
+                      color_discrete_sequence=px.colors.sequential.Viridis_r)
     except Exception as e:
         logging.error(f"Ошибка при построении графика 'Среднее время ответа по API-путям': {e}")
         raise
 
+    # График 5: Распределение статус-кодов по типам запросов
+    try:
+        status_request_counts = df.groupby(['request_type', 'status_code']).size().reset_index(name='count')
+        fig5 = px.bar(
+            status_request_counts,
+            x='request_type',
+            y='count',
+            color='status_code',
+            color_discrete_sequence=['#7BC17E', '#FFA15A', '#EF553B'],
+            title='Распределение статус-кодов по типам запросов',
+            labels={
+                'request_type': 'Тип запроса',
+                'count': 'Количество запросов',
+                'status_code': 'Статус-код'
+            },
+            barmode='group',
+            category_orders={
+                'request_type': ['GET', 'POST', 'PUT', 'DELETE'],
+                'status_code': ['200', '404', '500']
+            },
+            text='count'
+        )
+        fig5.update_layout(
+            legend_title_text='Статус-код',
+            plot_bgcolor='white',
+            bargap=0.3,
+            bargroupgap=0.1,
+            uniformtext_minsize=10
+        )
+        fig5.update_traces(
+            texttemplate='%{text}',
+            textposition='inside',
+            marker_line_width=0.5,
+            marker_line_color='white',
+            opacity=0.9
+        )
+    except Exception as e:
+        logging.error(f"Ошибка при построении графика 'Распределение статус-кодов по типам запросов': {e}")
+        raise
+    
     logging.info("Графики успешно обновлены")
-    return fig1, fig2, fig3, fig4
-
+    
+    # Возвращаем все графики
+    return (
+        # Для вкладки "Общее"
+        fig1, fig2, fig3, fig4, fig5,
+        # Для вкладки "Активность"
+        fig1, fig3,
+        # Для вкладки "Ответы"
+        fig2, fig5,
+        # Для вкладки "API"
+        fig3, fig4,
+        # Для вкладки "Производительность"
+        fig4, fig1
+    )
 
 if __name__ == '__main__':
     logging.info("Запуск приложения Dash...")
-    app.run(debug=True)
+    app.run_server(debug=True)
     logging.info("Приложение Dash запущено")
